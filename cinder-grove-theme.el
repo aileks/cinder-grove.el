@@ -5,7 +5,7 @@
 ;; Author: aileks
 ;; URL: https://github.com/aileks/cinder-grove.el
 ;; Version: 1.0.0
-;; Package-Requires: ((emacs "29.1"))
+;; Package-Requires: ((emacs "30.1"))
 ;; Keywords: faces, themes
 ;; SPDX-License-Identifier: GPL-3.0-or-later
 
@@ -29,14 +29,16 @@
 
 ;; Covers built-in faces plus corfu, vertico, marginalia, orderless,
 ;; consult, embark, which-key, avy, ace-window, anzu, transient,
-;; magit, diff-hl, ediff, smerge, flycheck, flymake, lsp-mode, org,
+;; magit, diff-hl, ediff, smerge, flycheck, flymake, eglot, lsp-mode, org,
 ;; markdown, diredfl, dirvish, doom-modeline, solaire, evil
 ;; (goggles, snipe, traces), dashboard, vterm, term, and more.
 
 ;;; Code:
 
 (deftheme cinder-grove
-  "Cinder Grove: smoldering dark theme with ember-orange accents.")
+  "Cinder Grove: warm, muted dark theme with ember-orange accents."
+  :background-mode 'dark
+  :kind 'color-scheme)
 
 (defgroup cinder-grove nil
   "Cinder Grove theme."
@@ -60,35 +62,41 @@
 (defconst cinder-grove-purple    "#9A788F")
 (defconst cinder-grove-cyan      "#58918C")
 
-(defvar cg-transparent nil
-  "Leave the default background unset when non-nil.
-Terminal backgrounds then show through in TUI frames, like
-`transparent = true' upstream.  GUI frames keep the theme canvas
-dark; real see-through needs a frame `alpha-background' set by the
-user (Emacs 29+), and without one transparent mode looks opaque.
-Set this before `load-theme'; floats and popups stay opaque either
-way.")
+(defcustom cg-transparent nil
+  "Use the terminal's default background when non-nil.
+GUI frames always use the theme's dark canvas; set the frame
+parameter `alpha-background' separately for GUI transparency.
+Popup faces retain explicit backgrounds.  Reload the theme with
+`load-theme' after changing this option."
+  :type 'boolean
+  :group 'cinder-grove)
 
-(defconst cinder-grove--bg (unless cg-transparent cinder-grove-bg)
-  "Effective default background; nil when transparency is enabled.")
+;; Match the terminal canvas without changing frame defaults outside the theme.
+(let ((tty-background (if cg-transparent "unspecified-bg" cinder-grove-bg)))
+  (custom-theme-set-faces
+   'cinder-grove
+   `(default ((((type tty)) (:background ,tty-background
+                            :foreground ,cinder-grove-fg))
+              (t (:background ,cinder-grove-bg :foreground ,cinder-grove-fg))))
+   `(fringe ((((type tty)) (:background ,tty-background
+                           :foreground ,cinder-grove-muted))
+             (t (:background ,cinder-grove-bg :foreground ,cinder-grove-muted))))))
 
 (custom-theme-set-faces
  'cinder-grove
 
  ;; --- base -------------------------------------------------------------------
- `(default ((t (:background ,cinder-grove--bg :foreground ,cinder-grove-fg))))
  `(cursor ((t (:background ,cinder-grove-orange))))
  `(region ((t (:background ,cinder-grove-visual))))
  `(highlight ((t (:background ,cinder-grove-surface))))
  `(hl-line ((t (:background ,cinder-grove-container))))
  `(secondary-selection ((t (:background ,cinder-grove-visual))))
- `(fringe ((t (:background ,cinder-grove--bg :foreground ,cinder-grove-muted))))
  `(vertical-border ((t (:foreground ,cinder-grove-muted))))
  `(window-divider ((t (:foreground ,cinder-grove-visual))))
- `(shadow ((t (:foreground ,cinder-grove-muted))))
+ `(shadow ((t (:foreground ,cinder-grove-subtle))))
  `(escape-glyph ((t (:foreground ,cinder-grove-muted))))
  `(nobreak-space ((t (:foreground ,cinder-grove-yellow :underline t))))
- `(file-name-shadow ((t (:foreground ,cinder-grove-muted))))
+ `(file-name-shadow ((t (:inherit shadow))))
  `(fill-column-indicator ((t (:foreground ,cinder-grove-visual))))
  `(line-number ((t (:foreground ,cinder-grove-muted :background unspecified))))
  `(line-number-current-line ((t (:foreground ,cinder-grove-orange
@@ -114,17 +122,30 @@ way.")
                               :foreground ,cinder-grove-bright
                               :box (:color ,cinder-grove-muted)))))
  `(mode-line-inactive ((t (:background ,cinder-grove-surface
-                                       :foreground ,cinder-grove-muted
+                                       :foreground ,cinder-grove-subtle
                                        :box (:color ,cinder-grove-container)))))
+ `(mode-line-active ((t (:inherit mode-line))))
  `(mode-line-buffer-id ((t (:foreground ,cinder-grove-orange :bold t))))
  `(mode-line-highlight ((t (:foreground ,cinder-grove-orange))))
  `(mode-line-emphasis ((t (:foreground ,cinder-grove-bright :bold t))))
  `(header-line ((t (:inherit mode-line))))
+ `(header-line-highlight ((t (:inherit mode-line-highlight))))
+ `(tab-bar ((t (:background ,cinder-grove-container
+                            :foreground ,cinder-grove-subtle))))
  `(tab-bar-tab ((t (:background ,cinder-grove-surface
-                                :foreground ,cinder-grove-fg))))
+                                :foreground ,cinder-grove-bright :weight bold))))
  `(tab-bar-tab-inactive ((t (:background ,cinder-grove-container
-                                         :foreground ,cinder-grove-muted))))
+                                         :foreground ,cinder-grove-subtle))))
  `(tab-bar-tab-group-current ((t (:foreground ,cinder-grove-orange :bold t))))
+ `(tab-bar-tab-group-inactive ((t (:inherit tab-bar-tab-inactive))))
+ `(tab-line ((t (:inherit tab-bar))))
+ `(tab-line-tab ((t (:inherit tab-bar-tab-inactive))))
+ `(tab-line-tab-current ((t (:inherit tab-bar-tab))))
+ `(tab-line-tab-inactive ((t (:inherit tab-bar-tab-inactive))))
+ `(tab-line-tab-inactive-alternate ((t (:inherit tab-line-tab-inactive))))
+ `(tab-line-highlight ((t (:background ,cinder-grove-visual
+                                       :foreground ,cinder-grove-bright))))
+ `(tab-line-close-highlight ((t (:foreground ,cinder-grove-orange))))
 
  ;; --- doom-modeline ---------------------------------------------------------------
  `(doom-modeline-bar ((t (:background ,cinder-grove-orange))))
@@ -132,13 +153,12 @@ way.")
  `(doom-modeline-buffer-file ((t (:foreground ,cinder-grove-bright))))
  `(doom-modeline-buffer-path ((t (:foreground ,cinder-grove-bright))))
  `(doom-modeline-buffer-major-mode ((t (:foreground ,cinder-grove-cyan))))
- `(doom-modeline-buffer-minor-mode ((t (:foreground ,cinder-grove-muted))))
+ `(doom-modeline-buffer-minor-mode ((t (:inherit shadow))))
  `(doom-modeline-buffer-modified ((t (:foreground ,cinder-grove-orange :bold t))))
  `(doom-modeline-emphasis ((t (:foreground ,cinder-grove-bright :bold t))))
  `(doom-modeline-highlight ((t (:foreground ,cinder-grove-orange))))
  `(doom-modeline-info ((t (:foreground ,cinder-grove-blue))))
  `(doom-modeline-warning ((t (:foreground ,cinder-grove-yellow))))
- `(doom-modeline-error ((t (:foreground ,cinder-grove-red))))
  `(doom-modeline-urgent ((t (:foreground ,cinder-grove-red :bold t))))
  `(doom-modeline-debug ((t (:foreground ,cinder-grove-purple))))
  `(doom-modeline-debug-visual ((t (:foreground ,cinder-grove-purple :bold t))))
@@ -168,11 +188,11 @@ way.")
  `(doom-modeline-persp-name ((t (:foreground ,cinder-grove-purple))))
  `(doom-modeline-workspace-name ((t (:foreground ,cinder-grove-orange :bold t))))
  `(doom-modeline-persp-buffer-not-in-persp
-   ((t (:foreground ,cinder-grove-muted :italic t))))
+   ((t (:inherit shadow :italic t))))
  `(doom-modeline-project-dir ((t (:foreground ,cinder-grove-orange))))
  `(doom-modeline-project-name ((t (:foreground ,cinder-grove-orange))))
- `(doom-modeline-project-parent-dir ((t (:foreground ,cinder-grove-muted))))
- `(doom-modeline-project-root-dir ((t (:foreground ,cinder-grove-muted))))
+ `(doom-modeline-project-parent-dir ((t (:inherit shadow))))
+ `(doom-modeline-project-root-dir ((t (:inherit shadow))))
  `(doom-modeline-repl-success ((t (:foreground ,cinder-grove-green))))
  `(doom-modeline-repl-warning ((t (:foreground ,cinder-grove-yellow))))
  `(doom-modeline-overwrite ((t (:foreground ,cinder-grove-red :bold t))))
@@ -181,22 +201,21 @@ way.")
  `(doom-modeline-input-method ((t (:foreground ,cinder-grove-subtle))))
 
  ;; --- solaire (secondary buffers) ---------------------------------------------------
- `(solaire-default-face ((t (:background ,cinder-grove-surface))))
- `(solaire-fringe-face ((t (:background ,cinder-grove-surface))))
- `(solaire-header-line-face ((t (:background ,cinder-grove-surface))))
- `(solaire-hl-line-face ((t (:background ,cinder-grove-surface))))
- `(solaire-line-number-face ((t (:background ,cinder-grove-surface))))
- `(solaire-mode-line-face ((t (:background ,cinder-grove-surface
-                                           :foreground ,cinder-grove-muted))))
- `(solaire-mode-line-active-face ((t (:background ,cinder-grove-container
-                                                  :foreground ,cinder-grove-bright))))
- `(solaire-mode-line-inactive-face ((t (:background ,cinder-grove-container
-                                                    :foreground ,cinder-grove-muted))))
- `(solaire-region-face ((t (:background ,cinder-grove-visual))))
- `(solaire-org-hide-face ((t (:background ,cinder-grove-surface))))
+ `(solaire-default-face ((t (:inherit default :background ,cinder-grove-surface))))
+ `(solaire-fringe-face ((t (:inherit fringe :background ,cinder-grove-surface))))
+ `(solaire-header-line-face ((t (:inherit header-line
+                                :background ,cinder-grove-surface))))
+ `(solaire-hl-line-face ((t (:inherit hl-line :background ,cinder-grove-visual))))
+ `(solaire-line-number-face ((t (:inherit line-number
+                                :background ,cinder-grove-surface))))
+ `(solaire-mode-line-face ((t (:inherit mode-line))))
+ `(solaire-mode-line-active-face ((t (:inherit mode-line-active))))
+ `(solaire-mode-line-inactive-face ((t (:inherit mode-line-inactive))))
+ `(solaire-region-face ((t (:inherit region))))
+ `(solaire-org-hide-face ((t (:foreground ,cinder-grove-surface))))
 
  ;; --- font lock --------------------------------------------------------------------
- `(font-lock-comment-face ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(font-lock-comment-face ((t (:foreground ,cinder-grove-subtle :italic t))))
  `(font-lock-comment-delimiter-face ((t (:inherit font-lock-comment-face))))
  `(font-lock-doc-face ((t (:foreground ,cinder-grove-subtle :italic t))))
  `(font-lock-doc-markup-face ((t (:foreground ,cinder-grove-yellow))))
@@ -204,16 +223,20 @@ way.")
  `(font-lock-keyword-face ((t (:foreground ,cinder-grove-orange))))
  `(font-lock-builtin-face ((t (:foreground ,cinder-grove-blue))))
  `(font-lock-function-name-face ((t (:foreground ,cinder-grove-cyan))))
- `(font-lock-method-call-face ((t (:foreground ,cinder-grove-cyan))))
+ `(font-lock-function-call-face ((t (:inherit font-lock-function-name-face))))
  `(font-lock-variable-name-face ((t (:foreground ,cinder-grove-fg))))
- `(font-lock-variable-use-face ((t (:foreground ,cinder-grove-fg))))
+ `(font-lock-variable-use-face ((t (:inherit font-lock-variable-name-face))))
  `(font-lock-constant-face ((t (:foreground ,cinder-grove-purple))))
  `(font-lock-type-face ((t (:foreground ,cinder-grove-yellow))))
  `(font-lock-property-name-face ((t (:foreground ,cinder-grove-secondary))))
- `(font-lock-property-use-face ((t (:foreground ,cinder-grove-secondary))))
+ `(font-lock-property-use-face ((t (:inherit font-lock-property-name-face))))
+ `(font-lock-regexp-face ((t (:inherit font-lock-string-face))))
  `(font-lock-number-face ((t (:foreground ,cinder-grove-purple))))
  `(font-lock-operator-face ((t (:foreground ,cinder-grove-secondary))))
  `(font-lock-punctuation-face ((t (:foreground ,cinder-grove-secondary))))
+ `(font-lock-bracket-face ((t (:inherit font-lock-punctuation-face))))
+ `(font-lock-delimiter-face ((t (:inherit font-lock-punctuation-face))))
+ `(font-lock-misc-punctuation-face ((t (:inherit font-lock-punctuation-face))))
  `(font-lock-preprocessor-face ((t (:foreground ,cinder-grove-orange :italic t))))
  `(font-lock-negation-char-face ((t (:foreground ,cinder-grove-red))))
  `(font-lock-warning-face ((t (:foreground ,cinder-grove-yellow))))
@@ -228,67 +251,80 @@ way.")
  `(flycheck-error ((t (:underline (:style wave :color ,cinder-grove-red)))))
  `(flycheck-warning ((t (:underline (:style wave :color ,cinder-grove-yellow)))))
  `(flycheck-info ((t (:underline (:style wave :color ,cinder-grove-blue)))))
- `(flycheck-fringe-error ((t (:foreground ,cinder-grove-red))))
- `(flycheck-fringe-warning ((t (:foreground ,cinder-grove-yellow))))
- `(flycheck-fringe-info ((t (:foreground ,cinder-grove-blue))))
+ `(flycheck-fringe-error ((t (:inherit error))))
+ `(flycheck-fringe-warning ((t (:inherit warning))))
+ `(flycheck-fringe-info ((t (:inherit compilation-info))))
  `(flycheck-error-list-error ((t (:foreground ,cinder-grove-red :bold t))))
  `(flycheck-error-list-warning ((t (:foreground ,cinder-grove-yellow :bold t))))
  `(flycheck-error-list-info ((t (:foreground ,cinder-grove-blue :bold t))))
- `(flycheck-error-list-line-number ((t (:foreground ,cinder-grove-muted))))
- `(flycheck-error-list-column-number ((t (:foreground ,cinder-grove-muted))))
+ `(flycheck-error-list-line-number ((t (:inherit shadow))))
+ `(flycheck-error-list-column-number ((t (:inherit shadow))))
  `(flycheck-error-list-id ((t (:foreground ,cinder-grove-subtle))))
  `(flycheck-error-list-filename ((t (:foreground ,cinder-grove-cyan))))
  `(flymake-error ((t (:underline (:style wave :color ,cinder-grove-red)))))
  `(flymake-warning ((t (:underline (:style wave :color ,cinder-grove-yellow)))))
  `(flymake-note ((t (:underline (:style wave :color ,cinder-grove-blue)))))
 
+ ;; --- eglot ------------------------------------------------------------------------
+ `(eglot-highlight-symbol-face ((t (:background ,cinder-grove-visual))))
+ `(eglot-diagnostic-tag-unnecessary-face ((t (:inherit shadow))))
+ `(eglot-diagnostic-tag-deprecated-face ((t (:strike-through t))))
+ `(eglot-inlay-hint-face ((t (:inherit shadow :height 0.8 :slant italic))))
+ `(eglot-type-hint-face ((t (:inherit eglot-inlay-hint-face
+                           :foreground ,cinder-grove-yellow))))
+ `(eglot-parameter-hint-face ((t (:inherit eglot-inlay-hint-face
+                                :foreground ,cinder-grove-orange))))
+
  ;; --- completions ---------------------------------------------------------------------
  `(completions-common-part ((t (:foreground ,cinder-grove-orange :bold t))))
  `(completions-first-difference ((t (:foreground ,cinder-grove-orange :bold t))))
+ `(completions-annotations ((t (:inherit shadow :slant italic))))
+ `(completions-highlight ((t (:background ,cinder-grove-visual
+                             :foreground ,cinder-grove-bright))))
+ `(completions-group-title ((t (:foreground ,cinder-grove-purple :weight bold))))
+ `(completions-group-separator ((t (:foreground ,cinder-grove-muted
+                                   :strike-through t))))
  `(corfu-default ((t (:background ,cinder-grove-container
                                   :foreground ,cinder-grove-fg))))
- `(corfu-current ((t (:background ,cinder-grove-surface
+ `(corfu-current ((t (:background ,cinder-grove-visual
                                   :foreground ,cinder-grove-bright))))
- `(corfu-annotations ((t (:inherit corfu-default
-                                   :foreground ,cinder-grove-muted :italic t))))
- `(corfu-deprecated ((t (:inherit corfu-default :strike-through t))))
+ `(corfu-annotations ((t (:inherit completions-annotations))))
+ `(corfu-deprecated ((t (:inherit shadow :strike-through t))))
  `(corfu-bar ((t (:background ,cinder-grove-muted))))
- `(corfu-border ((t (:foreground ,cinder-grove-orange))))
- `(corfu-echo ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(corfu-border ((t (:background ,cinder-grove-orange))))
+ `(corfu-echo ((t (:inherit completions-annotations))))
  `(corfu-popupinfo ((t (:background ,cinder-grove-container
                                     :foreground ,cinder-grove-secondary))))
  `(corfu-quick1 ((t (:foreground ,cinder-grove-orange :bold t))))
  `(corfu-quick2 ((t (:foreground ,cinder-grove-yellow :bold t))))
- `(vertico-current ((t (:background ,cinder-grove-surface
+ `(vertico-current ((t (:background ,cinder-grove-visual
                                     :foreground ,cinder-grove-bright))))
- `(vertico-group-title ((t (:foreground ,cinder-grove-purple :bold t))))
+ `(vertico-group-title ((t (:inherit completions-group-title))))
  `(vertico-group-separator ((t (:foreground ,cinder-grove-muted))))
  `(orderless-match-face-0 ((t (:foreground ,cinder-grove-orange :bold t))))
  `(orderless-match-face-1 ((t (:foreground ,cinder-grove-yellow :bold t))))
  `(orderless-match-face-2 ((t (:foreground ,cinder-grove-green :bold t))))
  `(orderless-match-face-3 ((t (:foreground ,cinder-grove-cyan :bold t))))
- `(marginalia-documentation ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(marginalia-documentation ((t (:inherit completions-annotations))))
  `(marginalia-key ((t (:foreground ,cinder-grove-orange :bold t))))
  `(marginalia-value ((t (:foreground ,cinder-grove-green))))
- `(marginalia-lighter ((t (:foreground ,cinder-grove-muted))))
+ `(marginalia-lighter ((t (:inherit shadow))))
  `(marginalia-modified ((t (:foreground ,cinder-grove-yellow))))
  `(marginalia-date ((t (:foreground ,cinder-grove-blue))))
  `(marginalia-type ((t (:foreground ,cinder-grove-cyan))))
  `(marginalia-on ((t (:foreground ,cinder-grove-green))))
- `(marginalia-off ((t (:foreground ,cinder-grove-muted))))
+ `(marginalia-off ((t (:inherit shadow))))
  `(marginalia-installed ((t (:foreground ,cinder-grove-green))))
- `(marginalia-archive ((t (:foreground ,cinder-grove-muted))))
- `(marginalia-null ((t (:foreground ,cinder-grove-muted))))
+ `(marginalia-archive ((t (:inherit shadow))))
+ `(marginalia-null ((t (:inherit shadow))))
  `(marginalia-number ((t (:foreground ,cinder-grove-purple))))
  `(marginalia-function ((t (:foreground ,cinder-grove-cyan))))
  `(marginalia-symbol ((t (:foreground ,cinder-grove-purple))))
  `(consult-help ((t (:foreground ,cinder-grove-orange))))
  `(consult-key ((t (:foreground ,cinder-grove-orange :bold t))))
- `(consult-grep-context ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(consult-grep-context ((t (:inherit completions-annotations))))
  `(consult-preview-line ((t (:background ,cinder-grove-surface))))
  `(consult-preview-insertion ((t (:background ,cinder-grove-surface))))
- `(consult-preview-cursor ((t (:background ,cinder-grove-orange
-                                           :foreground ,cinder-grove-bg))))
  `(consult-preview-match ((t (:foreground ,cinder-grove-orange :bold t))))
  `(consult-highlight-match ((t (:foreground ,cinder-grove-orange :bold t))))
  `(consult-highlight-mark ((t (:background ,cinder-grove-visual))))
@@ -298,8 +334,8 @@ way.")
  `(consult-async-finished ((t (:foreground ,cinder-grove-green))))
  `(consult-async-option ((t (:foreground ,cinder-grove-cyan))))
  `(consult-narrow-indicator ((t (:foreground ,cinder-grove-muted))))
- `(consult-imenu-prefix ((t (:foreground ,cinder-grove-muted))))
- `(consult-line-number ((t (:foreground ,cinder-grove-muted))))
+ `(consult-imenu-prefix ((t (:inherit shadow))))
+ `(consult-line-number ((t (:inherit shadow))))
  `(embark-keybinding ((t (:foreground ,cinder-grove-orange :bold t))))
  `(embark-keybinding-repeat ((t (:foreground ,cinder-grove-orange :bold t
                                               :underline t))))
@@ -309,10 +345,10 @@ way.")
  `(embark-collect-group-title ((t (:foreground ,cinder-grove-purple :bold t))))
  `(embark-collect-group-separator ((t (:foreground ,cinder-grove-muted))))
  `(embark-collect-candidate ((t (:foreground ,cinder-grove-fg))))
- `(embark-collect-annotation ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(embark-collect-annotation ((t (:inherit completions-annotations))))
  `(embark-verbose-indicator-title ((t (:foreground ,cinder-grove-orange :bold t))))
  `(embark-verbose-indicator-documentation
-   ((t (:foreground ,cinder-grove-muted :italic t))))
+   ((t (:inherit completions-annotations))))
  `(embark-verbose-indicator-shadowed ((t (:foreground ,cinder-grove-muted))))
 
  ;; --- dired, diredfl, dirvish -------------------------------------------------------
@@ -333,9 +369,8 @@ way.")
  `(diredfl-dir-priv ((t (:foreground ,cinder-grove-blue))))
  `(diredfl-file-name ((t (:foreground ,cinder-grove-fg))))
  `(diredfl-file-suffix ((t (:foreground ,cinder-grove-subtle))))
- `(diredfl-date-time ((t (:foreground ,cinder-grove-muted))))
- `(diredfl-number ((t (:foreground ,cinder-grove-muted))))
- `(diredfl-size ((t (:foreground ,cinder-grove-muted))))
+ `(diredfl-date-time ((t (:inherit shadow))))
+ `(diredfl-number ((t (:inherit shadow))))
  `(diredfl-symlink ((t (:foreground ,cinder-grove-cyan))))
  `(diredfl-executable-tag ((t (:foreground ,cinder-grove-green))))
  `(diredfl-compressed-file-name ((t (:foreground ,cinder-grove-fg))))
@@ -344,12 +379,12 @@ way.")
  `(diredfl-flag-mark ((t (:foreground ,cinder-grove-bg
                                        :background ,cinder-grove-orange :bold t))))
  `(diredfl-flag-mark-line ((t (:background ,cinder-grove-orange
-                                           :foreground ,cinder-grove-bright))))
+                                           :foreground ,cinder-grove-bg))))
  `(diredfl-deletion ((t (:foreground ,cinder-grove-bg
                                       :background ,cinder-grove-red :bold t))))
  `(diredfl-deletion-file-name ((t (:foreground ,cinder-grove-red))))
- `(diredfl-read-priv ((t (:foreground ,cinder-grove-muted))))
- `(diredfl-write-priv ((t (:foreground ,cinder-grove-muted))))
+ `(diredfl-read-priv ((t (:inherit shadow))))
+ `(diredfl-write-priv ((t (:inherit shadow))))
  `(diredfl-exec-priv ((t (:foreground ,cinder-grove-green))))
  `(diredfl-no-priv ((t (:foreground ,cinder-grove-muted))))
  `(diredfl-link-priv ((t (:foreground ,cinder-grove-cyan))))
@@ -357,7 +392,7 @@ way.")
  `(diredfl-rare-priv ((t (:foreground ,cinder-grove-yellow))))
  `(dirvish-hl-line ((t (:background ,cinder-grove-surface))))
  `(dirvish-hl-line-inactive ((t (:background ,cinder-grove-container))))
- `(dirvish-inactive ((t (:foreground ,cinder-grove-muted))))
+ `(dirvish-inactive ((t (:inherit shadow))))
  `(dirvish-subtree-guide ((t (:foreground ,cinder-grove-visual))))
  `(dirvish-emerge-group-title ((t (:foreground ,cinder-grove-purple :bold t))))
  `(dirvish-narrow-match-face-0 ((t (:foreground ,cinder-grove-orange :bold t))))
@@ -373,15 +408,15 @@ way.")
  `(dirvish-proc-failed ((t (:foreground ,cinder-grove-red))))
  `(dirvish-proc-finished ((t (:foreground ,cinder-grove-green))))
  `(dirvish-proc-running ((t (:foreground ,cinder-grove-yellow))))
- `(dirvish-free-space ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-device-number ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-group-id ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-inode-number ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-link-number ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-modes ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-size ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-time ((t (:foreground ,cinder-grove-muted))))
- `(dirvish-file-user-id ((t (:foreground ,cinder-grove-muted))))
+ `(dirvish-free-space ((t (:inherit shadow))))
+ `(dirvish-file-device-number ((t (:inherit shadow))))
+ `(dirvish-file-group-id ((t (:inherit shadow))))
+ `(dirvish-file-inode-number ((t (:inherit shadow))))
+ `(dirvish-file-link-number ((t (:inherit shadow))))
+ `(dirvish-file-modes ((t (:inherit shadow))))
+ `(dirvish-file-size ((t (:inherit shadow))))
+ `(dirvish-file-time ((t (:inherit shadow))))
+ `(dirvish-file-user-id ((t (:inherit shadow))))
  `(dirvish-git-commit-message-face ((t (:foreground ,cinder-grove-fg))))
  `(dirvish-collapse-dir-face ((t (:foreground ,cinder-grove-blue))))
  `(dirvish-collapse-file-face ((t (:foreground ,cinder-grove-fg))))
@@ -401,24 +436,23 @@ way.")
  `(diff-refine-removed ((t (:foreground ,cinder-grove-red :bold t))))
  `(diff-refine-changed ((t (:foreground ,cinder-grove-yellow :bold t))))
  `(diff-header ((t (:foreground ,cinder-grove-subtle))))
- `(diff-hunk-header ((t (:foreground ,cinder-grove-muted
+ `(diff-hunk-header ((t (:foreground ,cinder-grove-subtle
                                      :background ,cinder-grove-surface))))
  `(diff-file-header ((t (:foreground ,cinder-grove-orange :bold t))))
  `(magit-section-highlight ((t (:background ,cinder-grove-surface))))
  `(magit-section-heading ((t (:foreground ,cinder-grove-orange :bold t))))
  `(magit-section-heading-selection ((t (:foreground ,cinder-grove-yellow))))
  `(magit-dimmed ((t (:foreground ,cinder-grove-muted))))
- `(magit-hash ((t (:foreground ,cinder-grove-muted))))
+ `(magit-hash ((t (:inherit shadow))))
  `(magit-header-line ((t (:foreground ,cinder-grove-orange :bold t))))
- `(magit-digest ((t (:foreground ,cinder-grove-purple))))
  `(magit-branch-local ((t (:foreground ,cinder-grove-cyan))))
  `(magit-branch-remote ((t (:foreground ,cinder-grove-green))))
  `(magit-branch-current ((t (:foreground ,cinder-grove-orange :bold t))))
  `(magit-tag ((t (:foreground ,cinder-grove-yellow))))
  `(magit-refname ((t (:foreground ,cinder-grove-secondary))))
  `(magit-log-author ((t (:foreground ,cinder-grove-blue))))
- `(magit-log-date ((t (:foreground ,cinder-grove-muted))))
- `(magit-diff-hunk-heading ((t (:foreground ,cinder-grove-muted
+ `(magit-log-date ((t (:inherit shadow))))
+ `(magit-diff-hunk-heading ((t (:foreground ,cinder-grove-subtle
                                             :background ,cinder-grove-container))))
  `(magit-diff-hunk-heading-highlight ((t (:foreground ,cinder-grove-subtle
                                                       :background
@@ -449,7 +483,7 @@ way.")
                                          :background ,cinder-grove-visual))))
  `(ediff-current-diff-C ((t (:foreground ,cinder-grove-yellow
                                          :background ,cinder-grove-visual))))
- `(ediff-current-diff-Ancestor ((t (:foreground ,cinder-grove-muted
+ `(ediff-current-diff-Ancestor ((t (:foreground ,cinder-grove-subtle
                                                 :background
                                                 ,cinder-grove-visual))))
  `(ediff-fine-diff-A ((t (:foreground ,cinder-grove-red :bold t
@@ -458,7 +492,7 @@ way.")
                                       :background ,cinder-grove-surface))))
  `(ediff-fine-diff-C ((t (:foreground ,cinder-grove-yellow :bold t
                                       :background ,cinder-grove-surface))))
- `(ediff-fine-diff-Ancestor ((t (:foreground ,cinder-grove-muted
+ `(ediff-fine-diff-Ancestor ((t (:foreground ,cinder-grove-subtle
                                              :background
                                              ,cinder-grove-surface))))
  `(ediff-even-diff-A ((t (:foreground ,cinder-grove-secondary
@@ -485,7 +519,7 @@ way.")
                                  :background ,cinder-grove-container))))
  `(smerge-base ((t (:foreground ,cinder-grove-purple
                                 :background ,cinder-grove-container))))
- `(smerge-markers ((t (:foreground ,cinder-grove-muted
+ `(smerge-markers ((t (:foreground ,cinder-grove-subtle
                                    :background ,cinder-grove-surface))))
  `(smerge-refined-added ((t (:foreground ,cinder-grove-green :bold t))))
  `(smerge-refined-removed ((t (:foreground ,cinder-grove-red :bold t))))
@@ -496,6 +530,8 @@ way.")
 
  ;; --- org ---------------------------------------------------------------------------
  ;; Includes the +org-todo-* faces Doom's org module declares dynamically.
+ ;; A TTY cannot use its unknown default background as an invisible foreground.
+ `(org-hide ((t (:foreground ,cinder-grove-bg))))
  `(org-document-title ((t (:foreground ,cinder-grove-orange :bold t :height 1.2))))
  `(org-document-info ((t (:foreground ,cinder-grove-subtle))))
  `(org-level-1 ((t (:foreground ,cinder-grove-orange :bold t))))
@@ -513,22 +549,24 @@ way.")
  `(+org-todo-cancel ((t (:foreground ,cinder-grove-muted :strike-through t))))
  `(+org-todo-project ((t (:foreground ,cinder-grove-purple :bold t))))
  `(org-priority ((t (:foreground ,cinder-grove-yellow))))
- `(org-tag ((t (:foreground ,cinder-grove-muted))))
+ `(org-tag ((t (:inherit shadow))))
  `(org-date ((t (:foreground ,cinder-grove-blue :underline t))))
- `(org-special-keyword ((t (:foreground ,cinder-grove-muted))))
- `(org-meta-line ((t (:foreground ,cinder-grove-muted))))
- `(org-drawer ((t (:foreground ,cinder-grove-muted))))
+ `(org-special-keyword ((t (:inherit shadow))))
+ `(org-meta-line ((t (:inherit shadow))))
+ `(org-drawer ((t (:inherit shadow))))
  `(org-property-value ((t (:foreground ,cinder-grove-secondary))))
  `(org-table ((t (:foreground ,cinder-grove-secondary))))
  `(org-formula ((t (:foreground ,cinder-grove-purple))))
- `(org-block ((t (:background ,cinder-grove-container))))
- `(org-block-begin-line ((t (:foreground ,cinder-grove-muted
-                                          :background ,cinder-grove-container))))
+ `(org-block ((t (:background ,cinder-grove-container :extend t))))
+ `(org-block-begin-line ((t (:foreground ,cinder-grove-subtle
+                                          :background ,cinder-grove-container
+                                          :extend t))))
  `(org-block-end-line ((t (:inherit org-block-begin-line))))
  `(org-code ((t (:foreground ,cinder-grove-green
-                             :background ,cinder-grove-container))))
+                             :background ,cinder-grove-container :extend nil))))
+ `(org-inline-src-block ((t (:inherit org-block :extend nil))))
  `(org-verbatim ((t (:foreground ,cinder-grove-secondary))))
- `(org-quote ((t (:background ,cinder-grove-container :slant italic))))
+ `(org-quote ((t (:inherit org-block :slant italic :extend t))))
  `(org-headline-done ((t (:foreground ,cinder-grove-muted))))
  `(org-checkbox ((t (:foreground ,cinder-grove-orange :bold t))))
  `(org-link ((t (:foreground ,cinder-grove-blue :underline t))))
@@ -546,9 +584,9 @@ way.")
  `(org-agenda-done ((t (:foreground ,cinder-grove-muted))))
  `(org-scheduled ((t (:foreground ,cinder-grove-fg))))
  `(org-scheduled-today ((t (:foreground ,cinder-grove-green))))
- `(org-deadline-announce ((t (:foreground ,cinder-grove-red))))
+ `(org-imminent-deadline ((t (:inherit org-warning))))
  `(org-upcoming-deadline ((t (:foreground ,cinder-grove-yellow))))
- `(org-time-grid ((t (:foreground ,cinder-grove-muted))))
+ `(org-time-grid ((t (:inherit shadow))))
  `(org-warning ((t (:foreground ,cinder-grove-red :bold t))))
 
  ;; --- markdown -------------------------------------------------------------------------
@@ -563,12 +601,11 @@ way.")
  `(markdown-hr-face ((t (:foreground ,cinder-grove-muted))))
  `(markdown-blockquote-face ((t (:foreground ,cinder-grove-yellow :italic t))))
  `(markdown-code-face ((t (:background ,cinder-grove-container
-                                       :foreground ,cinder-grove-bright))))
- `(markdown-pre-face ((t (:background ,cinder-grove-container
-                                      :foreground ,cinder-grove-bright))))
- `(markdown-inline-code-face ((t (:foreground ,cinder-grove-green
-                                              :background
-                                              ,cinder-grove-container))))
+                                       :foreground ,cinder-grove-bright
+                                       :inherit fixed-pitch :extend nil))))
+ `(markdown-pre-face ((t (:inherit markdown-code-face :extend t))))
+ `(markdown-inline-code-face ((t (:inherit markdown-code-face
+                                 :foreground ,cinder-grove-green :extend nil))))
  `(markdown-language-keyword-face ((t (:foreground ,cinder-grove-purple))))
  `(markdown-markup-face ((t (:foreground ,cinder-grove-muted))))
  `(markdown-list-face ((t (:foreground ,cinder-grove-green))))
@@ -582,7 +619,7 @@ way.")
  `(markdown-gfm-checkbox-face ((t (:foreground ,cinder-grove-orange :bold t))))
  `(markdown-math-face ((t (:foreground ,cinder-grove-blue))))
  `(markdown-missing-link-face ((t (:foreground ,cinder-grove-red))))
- `(markdown-comment-face ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(markdown-comment-face ((t (:inherit font-lock-comment-face))))
  `(markdown-strike-through-face ((t (:foreground ,cinder-grove-muted
                                                  :strike-through t))))
 
@@ -611,14 +648,14 @@ way.")
  `(custom-face-tag ((t (:foreground ,cinder-grove-yellow))))
  `(custom-group-tag ((t (:foreground ,cinder-grove-purple :bold t))))
  `(custom-state ((t (:foreground ,cinder-grove-green))))
- `(custom-comment ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(custom-comment ((t (:inherit font-lock-comment-face))))
  `(custom-comment-tag ((t (:foreground ,cinder-grove-subtle))))
  `(custom-documentation ((t (:foreground ,cinder-grove-secondary))))
- `(compilation-error ((t (:foreground ,cinder-grove-red))))
- `(compilation-warning ((t (:foreground ,cinder-grove-yellow))))
+ `(compilation-error ((t (:inherit error))))
+ `(compilation-warning ((t (:inherit warning))))
  `(compilation-info ((t (:foreground ,cinder-grove-blue))))
- `(compilation-line-number ((t (:foreground ,cinder-grove-muted))))
- `(compilation-column-number ((t (:foreground ,cinder-grove-muted))))
+ `(compilation-line-number ((t (:inherit shadow))))
+ `(compilation-column-number ((t (:inherit shadow))))
  `(compilation-mode-line-fail ((t (:foreground ,cinder-grove-red :bold t))))
  `(compilation-mode-line-exit ((t (:foreground ,cinder-grove-green :bold t))))
  `(compilation-mode-line-run ((t (:foreground ,cinder-grove-yellow :bold t))))
@@ -726,17 +763,16 @@ way.")
                                    :foreground ,cinder-grove-orange))))
  `(popup-menu-selection-face ((t (:background ,cinder-grove-orange
                                               :foreground ,cinder-grove-bg))))
- `(popup-menu-summary-face ((t (:foreground ,cinder-grove-muted))))
+ `(popup-menu-summary-face ((t (:inherit shadow))))
  `(child-frame-border ((t (:background ,cinder-grove-muted))))
  `(nav-flash-face ((t (:background ,cinder-grove-visual
                                    :foreground ,cinder-grove-orange))))
- `(indent-bars-face ((t (:foreground ,cinder-grove-visual))))
  `(which-key-key-face ((t (:foreground ,cinder-grove-orange :bold t))))
  `(which-key-command-description-face ((t (:foreground ,cinder-grove-fg))))
  `(which-key-group-description-face ((t (:foreground ,cinder-grove-subtle))))
  `(which-key-special-key-face ((t (:foreground ,cinder-grove-orange :bold t))))
  `(which-key-separator-face ((t (:foreground ,cinder-grove-muted))))
- `(which-key-note-face ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(which-key-note-face ((t (:inherit shadow :italic t))))
  `(dashboard-banner-logo-title ((t (:foreground ,cinder-grove-orange :bold t))))
  `(dashboard-items-face ((t (:foreground ,cinder-grove-fg))))
  `(dashboard-heading ((t (:foreground ,cinder-grove-orange :bold t))))
@@ -745,8 +781,8 @@ way.")
  `(transient-heading ((t (:foreground ,cinder-grove-purple :bold t))))
  `(transient-argument ((t (:foreground ,cinder-grove-cyan))))
  `(transient-value ((t (:foreground ,cinder-grove-yellow))))
- `(transient-inactive-argument ((t (:foreground ,cinder-grove-muted))))
- `(transient-inactive-value ((t (:foreground ,cinder-grove-muted))))
+ `(transient-inactive-argument ((t (:inherit shadow))))
+ `(transient-inactive-value ((t (:inherit shadow))))
  `(transient-unreachable ((t (:foreground ,cinder-grove-muted :strike-through t))))
  `(transient-unreachable-key ((t (:foreground ,cinder-grove-muted))))
  `(vundo-default ((t (:foreground ,cinder-grove-fg))))
@@ -782,11 +818,11 @@ way.")
  `(dape-source-line-face ((t (:background ,cinder-grove-visual
                                           :foreground ,cinder-grove-bright))))
  `(dape-expression-face ((t (:foreground ,cinder-grove-yellow))))
- `(dape-inlay-hint-face ((t (:foreground ,cinder-grove-muted
+ `(dape-inlay-hint-face ((t (:foreground ,cinder-grove-subtle
                                          :background ,cinder-grove-surface
                                          :italic t))))
  `(dape-repl-error-face ((t (:foreground ,cinder-grove-red))))
- `(dape-log-face ((t (:foreground ,cinder-grove-muted))))
+ `(dape-log-face ((t (:inherit shadow))))
  `(dape-header-line-active-face ((t (:background ,cinder-grove-orange
                                                  :foreground ,cinder-grove-bg))))
  `(dape-header-line-inactive-face ((t (:background ,cinder-grove-container
@@ -835,7 +871,7 @@ way.")
                                              :box (:color ,cinder-grove-orange)))))
  `(lsp-face-rename ((t (:background ,cinder-grove-surface))))
  `(lsp-ui-doc-background ((t (:background ,cinder-grove-container))))
- `(lsp-inlay-hint-face ((t (:foreground ,cinder-grove-muted
+ `(lsp-inlay-hint-face ((t (:foreground ,cinder-grove-subtle
                                         :background ,cinder-grove-surface
                                         :italic t))))
  `(lsp-inlay-hint-parameter-face ((t (:foreground ,cinder-grove-orange
@@ -845,8 +881,8 @@ way.")
  `(lsp-inlay-hint-type-face ((t (:foreground ,cinder-grove-yellow
                                              :background ,cinder-grove-surface
                                              :italic t))))
- `(lsp-lens-face ((t (:foreground ,cinder-grove-muted))))
- `(lsp-details-face ((t (:foreground ,cinder-grove-muted :italic t))))
+ `(lsp-lens-face ((t (:inherit shadow))))
+ `(lsp-details-face ((t (:inherit shadow :italic t))))
  `(lsp-modeline-code-actions-face ((t (:foreground ,cinder-grove-yellow))))
  `(lsp-signature-face ((t (:foreground ,cinder-grove-secondary :italic t))))
  `(lsp-signature-highlight-function-argument ((t (:foreground
@@ -901,8 +937,34 @@ way.")
  `(lsp-face-semhl-deprecated ((t (:strike-through t))))
 
  ;; --- terminals (ANSI palette from terminal_colors upstream) -------------------------------
- `(term-color-black ((t (:foreground ,cinder-grove-surface
-                                     :background ,cinder-grove-surface))))
+ `(ansi-color-black ((t (:foreground ,cinder-grove-bg
+                        :background ,cinder-grove-bg))))
+ `(ansi-color-red ((t (:foreground ,cinder-grove-red
+                      :background ,cinder-grove-red))))
+ `(ansi-color-green ((t (:foreground ,cinder-grove-green
+                        :background ,cinder-grove-green))))
+ `(ansi-color-yellow ((t (:foreground ,cinder-grove-yellow
+                         :background ,cinder-grove-yellow))))
+ `(ansi-color-blue ((t (:foreground ,cinder-grove-blue
+                       :background ,cinder-grove-blue))))
+ `(ansi-color-magenta ((t (:foreground ,cinder-grove-purple
+                          :background ,cinder-grove-purple))))
+ `(ansi-color-cyan ((t (:foreground ,cinder-grove-cyan
+                       :background ,cinder-grove-cyan))))
+ `(ansi-color-white ((t (:foreground ,cinder-grove-secondary
+                        :background ,cinder-grove-secondary))))
+ `(ansi-color-bright-black ((t (:foreground ,cinder-grove-muted
+                               :background ,cinder-grove-muted))))
+ `(ansi-color-bright-red ((t (:inherit ansi-color-red))))
+ `(ansi-color-bright-green ((t (:inherit ansi-color-green))))
+ `(ansi-color-bright-yellow ((t (:inherit ansi-color-yellow))))
+ `(ansi-color-bright-blue ((t (:inherit ansi-color-blue))))
+ `(ansi-color-bright-magenta ((t (:inherit ansi-color-magenta))))
+ `(ansi-color-bright-cyan ((t (:inherit ansi-color-cyan))))
+ `(ansi-color-bright-white ((t (:foreground ,cinder-grove-bright
+                               :background ,cinder-grove-bright))))
+ `(term-color-black ((t (:foreground ,cinder-grove-bg
+                                     :background ,cinder-grove-bg))))
  `(term-color-red ((t (:foreground ,cinder-grove-red
                                    :background ,cinder-grove-red))))
  `(term-color-green ((t (:foreground ,cinder-grove-green
@@ -915,11 +977,10 @@ way.")
                                        :background ,cinder-grove-purple))))
  `(term-color-cyan ((t (:foreground ,cinder-grove-cyan
                                     :background ,cinder-grove-cyan))))
- `(term-color-white ((t (:foreground ,cinder-grove-bright
-                                     :background ,cinder-grove-bright))))
- `(vterm-color-default ((t (:foreground ,cinder-grove-fg))))
- `(vterm-color-black ((t (:foreground ,cinder-grove-surface
-                                      :background ,cinder-grove-surface))))
+ `(term-color-white ((t (:foreground ,cinder-grove-secondary
+                                     :background ,cinder-grove-secondary))))
+ `(vterm-color-black ((t (:foreground ,cinder-grove-bg
+                                      :background ,cinder-grove-bg))))
  `(vterm-color-red ((t (:foreground ,cinder-grove-red
                                     :background ,cinder-grove-red))))
  `(vterm-color-green ((t (:foreground ,cinder-grove-green
@@ -953,22 +1014,6 @@ way.")
  `(vterm-color-bright-white ((t (:foreground ,cinder-grove-bright
                                              :background ,cinder-grove-bright)))))
 
-;; Unspecified backgrounds resolve to the frame canvas, and Emacs
-;; paints that canvas white by default, so pin it to the theme
-;; background.  Actual see-through comes from a frame
-;; `alpha-background' set by the user.
-(when cg-transparent
-  (add-to-list 'default-frame-alist `(background-color . ,cinder-grove-bg))
-  (dolist (frame (frame-list))
-    (set-frame-parameter frame 'background-color cinder-grove-bg)))
-
-;; Terminal ANSI palette (cinder-grove terminal_colors = true upstream).
-(custom-theme-set-variables
- 'cinder-grove
- '(ansi-color-names-vector
-   ["#23201C" "#B34A45" "#879B5C" "#D9A441" "#6785A1" "#9A788F" "#58918C" "#DDD5CA"])
- '(ansi-color-faces-vector [default bold shadow italic underline bold bold-italic bold]))
-
 ;;;###autoload
 (and load-file-name
      (boundp 'custom-theme-load-path)
@@ -976,6 +1021,6 @@ way.")
                   (file-name-as-directory
                    (file-name-directory load-file-name))))
 
-(provide-theme 'cinder-grove)
 (provide 'cinder-grove-theme)
+(provide-theme 'cinder-grove)
 ;;; cinder-grove-theme.el ends here
