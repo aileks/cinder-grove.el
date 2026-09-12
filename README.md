@@ -2,7 +2,7 @@
 
 A warm, muted Emacs theme that's easy on the eyes.
 
-![Cinder Grove Showcase](./assets/screenshot.png)
+![Showcase](./assets/screenshot.png)
 
 ## Ports
 
