@@ -59,7 +59,7 @@ Or copy `cinder-grove-theme.el` into `~/.emacs.d/themes/` (or `$DOOMDIR/themes/`
 Enable transparency while keeping floating windows opaque:
 
 ```elisp
-(setq cinder-grove-transparent t)
+(setq cg-transparent t)
 (load-theme 'cinder-grove t)
 ```
 

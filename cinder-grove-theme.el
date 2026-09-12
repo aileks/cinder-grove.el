@@ -60,7 +60,7 @@
 (defconst cinder-grove-purple    "#9A788F")
 (defconst cinder-grove-cyan      "#58918C")
 
-(defvar cinder-grove-transparent nil
+(defvar cg-transparent nil
   "Leave the default background unset when non-nil.
 Terminal backgrounds then show through in TUI frames, like
 `transparent = true' upstream.  GUI frames keep the theme canvas
@@ -69,7 +69,7 @@ user (Emacs 29+), and without one transparent mode looks opaque.
 Set this before `load-theme'; floats and popups stay opaque either
 way.")
 
-(defconst cinder-grove--bg (unless cinder-grove-transparent cinder-grove-bg)
+(defconst cinder-grove--bg (unless cg-transparent cinder-grove-bg)
   "Effective default background; nil when transparency is enabled.")
 
 (custom-theme-set-faces
@@ -957,7 +957,7 @@ way.")
 ;; paints that canvas white by default, so pin it to the theme
 ;; background.  Actual see-through comes from a frame
 ;; `alpha-background' set by the user.
-(when cinder-grove-transparent
+(when cg-transparent
   (add-to-list 'default-frame-alist `(background-color . ,cinder-grove-bg))
   (dolist (frame (frame-list))
     (set-frame-parameter frame 'background-color cinder-grove-bg)))
