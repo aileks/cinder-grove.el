@@ -63,6 +63,12 @@ Enable transparency while keeping floating windows opaque:
 (load-theme 'cinder-grove t)
 ```
 
+In terminal Emacs the terminal's background shows through. In GUI, add a frame `alpha-background` for real see-through (Emacs 29+); without one, transparent mode looks the same as opaque:
+
+```elisp
+(add-to-list 'default-frame-alist '(alpha-background . 85))
+```
+
 ## Palette
 
 ![Cinder Grove color palette](./assets/palette.svg)
