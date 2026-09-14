@@ -215,7 +215,7 @@ Popup faces retain explicit backgrounds.  Reload the theme with
  `(solaire-org-hide-face ((t (:foreground ,cinder-grove-surface))))
 
  ;; --- font lock --------------------------------------------------------------------
- `(font-lock-comment-face ((t (:foreground ,cinder-grove-subtle :italic t))))
+ `(font-lock-comment-face ((t (:foreground ,cinder-grove-muted :italic t))))
  `(font-lock-comment-delimiter-face ((t (:inherit font-lock-comment-face))))
  `(font-lock-doc-face ((t (:foreground ,cinder-grove-subtle :italic t))))
  `(font-lock-doc-markup-face ((t (:foreground ,cinder-grove-yellow))))
